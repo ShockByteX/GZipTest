@@ -35,7 +35,6 @@ namespace GZipTest
                     Console.WriteLine("Press [ESC] to cancel process..");
                     while (_processor.IsRunning && Console.ReadKey(true).Key != ConsoleKey.Escape) Thread.Sleep(10);
                     if (_processor.IsRunning) _processor.Cancel();
-                    Console.ReadKey(true);
                 }
                 catch (UnrecognizedCommandException ex)
                 {
