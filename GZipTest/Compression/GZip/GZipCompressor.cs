@@ -31,8 +31,7 @@ namespace GZipTest.Compression.GZip
         }
         protected override void ProcessThreadFunction()
         {
-            CompressionBlock block;
-            while (!_isCanceled && _readQueue.TryDequeue(out block)) _writeQueue.Enqueue(Compress(block));
+            while (!_isCanceled && _readQueue.TryDequeue(out CompressionBlock block)) _writeQueue.Enqueue(Compress(block));
         }
         protected override void WriteThreadFunction()
         {
@@ -40,8 +39,7 @@ namespace GZipTest.Compression.GZip
             {
                 using (BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8))
                 {
-                    CompressionBlock block;
-                    while (!_isCanceled && _writeQueue.TryDequeue(out block)) writer.Write(block.Data);
+                    while (!_isCanceled && _writeQueue.TryDequeue(out CompressionBlock block)) writer.Write(block.Data);
                 }
             }
         }

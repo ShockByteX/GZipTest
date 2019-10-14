@@ -5,7 +5,7 @@ namespace GZipTest.Helpers
 {
     public static class ThreadHelper
     {
-        public static Thread RunGuarded(Action threadHandler, Action<Exception> exceptionHandler, int id = -1)
+        public static Thread RunGuarded(Action threadHandler, Action<Exception> exceptionHandler)
         {
             Thread thread = new Thread(() =>
             {
@@ -19,7 +19,6 @@ namespace GZipTest.Helpers
                 }
             })
             {
-                Name = id.ToString(),
                 IsBackground = false,
                 Priority = ThreadPriority.Normal
             };

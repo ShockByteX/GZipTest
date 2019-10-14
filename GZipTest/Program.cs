@@ -11,30 +11,28 @@ namespace GZipTest
     class Program
     {
         private static int _progressCursorY = -1, _progressCursorX = -1;
-        private static CompressionProcessor _processor;
         static void Main(string[] args)
         {
             if (args != null && args.Length > 0)
             {
+                CompressionProcessor processor;
                 try
                 {
                     switch (args[0])
                     {
-                        case "compress": _processor = new GZipCompressor(); break;
-                        case "decompress": _processor = new GZipDecompressor(); break;
+                        case "compress": processor = new GZipCompressor(); break;
+                        case "decompress": processor = new GZipDecompressor(); break;
                         default: throw new UnrecognizedCommandException(args[0]);
                     }
-                    if (args.Length != 3) throw new UnrecognizedCommandException($"{args[0]} arguments");
+                    if (args.Length != 3) throw new UnrecognizedCommandException($"Invalid command arguments.", args[0]);
                     if (!File.Exists(args[1])) throw new FileNotFoundException("File not found!", args[1]);
                     if (File.Exists(args[2]) && !AskYesNo($"File {args[2]} is exists. Overwrite?")) return;
-                    _processor.ProgressChanged += processor_ProgressChanged;
-                    _processor.ProcessingFinished += processor_ProcessingFinished;
-                    Func<Stream> srcStreamFunc = () => File.Open(args[1], FileMode.Open, FileAccess.Read);
-                    Func<Stream> dstStreamFunc = () => File.Open(args[2], FileMode.Create, FileAccess.Write);
-                    _processor.Run(srcStreamFunc, dstStreamFunc, 1 << 20); // BlockLength - 1 Mb
+                    processor.ProgressChanged += Processor_ProgressChanged;
+                    processor.ProcessingFinished += Processor_ProcessingFinished;
+                    processor.Run(() => File.Open(args[1], FileMode.Open, FileAccess.Read), () => File.Open(args[2], FileMode.Create, FileAccess.Write), 1 << 20);
                     Console.WriteLine("Press [ESC] to cancel process..");
-                    while (_processor.IsRunning && Console.ReadKey(true).Key != ConsoleKey.Escape) Thread.Sleep(10);
-                    if (_processor.IsRunning) _processor.Cancel();
+                    while (processor.IsRunning && Console.ReadKey(true).Key != ConsoleKey.Escape) Thread.Sleep(10);
+                    if (processor.IsRunning) processor.Cancel();
                 }
                 catch (UnrecognizedCommandException ex)
                 {
@@ -48,8 +46,8 @@ namespace GZipTest
             }
             else PrintHelp();
         }
-        private static void processor_ProgressChanged(object sender, int value) => PrintProgress($"{value}%");
-        private static void processor_ProcessingFinished(object sender, CompressionResult result)
+        private static void Processor_ProgressChanged(object sender, int value) => PrintProgress($"{value}%");
+        private static void Processor_ProcessingFinished(object sender, CompressionResult result)
         {
             CompressionProcessor processor = (CompressionProcessor)sender;
             try
@@ -60,11 +58,11 @@ namespace GZipTest
                         PrintProgress($"Finished!");
                         break;
                     case CompressionResultType.Cancelled:
-                        DeleteDestinationFile();
+                        DeleteDestinationFile(processor);
                         PrintProgress($"Canceled!");
                         break;
                     case CompressionResultType.Fail:
-                        DeleteDestinationFile();
+                        DeleteDestinationFile(processor);
                         throw result.Exception;
                     default: throw new NotSupportedException();
                 }
@@ -75,9 +73,9 @@ namespace GZipTest
                 PrintError(ex.Message, true);
             }
         }
-        private static void DeleteDestinationFile()
+        private static void DeleteDestinationFile(CompressionProcessor processor)
         {
-            FileInfo file = IOHelper.GetFileFromStream(_processor.GetDestinationStream);
+            FileInfo file = IOHelper.GetFileFromStream(processor.GetDestinationStream);
             if (file != null && file.Exists) file.Delete();
         }
         private static bool AskYesNo(string message)

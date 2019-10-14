@@ -47,7 +47,7 @@ namespace GZipTest.Compression
                     {
                         _isCanceled = true;
                         exception = ex;
-                    }, i);
+                    });
                 }
                 ThreadHelper.WaitThreads(_readThread);
                 _readQueue.Close();
