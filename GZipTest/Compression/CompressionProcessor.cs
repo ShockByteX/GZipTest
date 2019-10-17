@@ -17,8 +17,8 @@ namespace GZipTest.Compression
         public bool IsRunning { get; private set; }
         public CompressionProcessor()
         {
-            _readQueue = new CompressionInputQueue(Environment.ProcessorCount << 1);
-            _writeQueue = new CompressionOutputQueue(Environment.ProcessorCount << 1);
+            _readQueue = new CompressionInputQueue(Environment.ProcessorCount);
+            _writeQueue = new CompressionOutputQueue(Environment.ProcessorCount);
         }
         public void Run(Func<Stream> getSrcStream, Func<Stream> getDstStream, int blockLength)
         {
